@@ -1,0 +1,473 @@
+#include<iostream>
+#include<fstream>
+
+#define MAX 10
+
+using namespace std;
+
+class Employee
+{
+	char Name[20];
+	int Id,Salary;
+	
+	public:
+       Employee(){Id=Salary=-1; }
+       void Accept()
+	{ cout<<"\nName	: ";cin>>Name;
+	  cout<<"Id		: ";cin>>Id;
+	  cout<<"Salary	: ";cin>>Salary; }
+       void Display()
+	{ cout<<"\n\t"<<Name<<"\t"<<Id<<"\t"<<Salary;}
+       int return_Id(){ return Id;}
+     };
+
+class Hashing
+{
+
+  struct Chaining
+     {
+       int Key;
+       long int Offset;
+       int Link;
+       Chaining(){ Key=Offset=Link=-1;}
+     };
+ Chaining Hash_Table[MAX];
+ public:
+ int Hash(long int);
+ int Empty(int);
+ void Print();
+ void Chaing_WO_Replacement(int,int);
+ int Search(int);
+};
+
+int Hashing::Hash(long int Key)
+{
+  int Sum=0;   //sum of digits divided by 10
+  while(Key>0)
+   { Sum+=Key%10; Key=Key/10; }
+  Sum=Sum%10;
+ return Sum;
+}
+//Find out empty location
+//If Find Empty Location then return position else return -1
+int Hashing::Empty(int Location)
+{
+ int I=Location;
+ do
+ { I++; I=I%MAX;
+ }while(Hash_Table[I].Key!=-1 && I!=Location);
+ return I;
+}
+void Hashing::Print()
+{ cout<<"\nHvalue\tKey\tOffset\tLink\n";
+  for(int I=0;I<MAX;I++)
+    { cout<<"\n"<<I<<"\t"<<Hash_Table[I].Key<<"\t";
+      cout<<Hash_Table[I].Offset<<"\t"<<Hash_Table[I].Link;}
+}
+//with chaining - without replacement
+void Hashing::Chaing_WO_Replacement(int Id,int Addr)
+{
+  	int I=0,Location,Pos=-1,Flag=0;
+  	char Answer;
+  	Print();
+  	Location=Hash(Id);
+  	if(Hash_Table[Location].Key==-1)//Location is Empty
+  	  { Hash_Table[Location].Key=Id;Hash_Table[Location].Offset=Addr;}
+  	else
+  	{
+  		   Pos=Empty(Location);
+  		   if(Pos==Location)
+			cout<<"Hash Table Full\n";
+  		   else //hash table not full
+  	   { //Present Key Hash==New Key Hash
+  	    if(Hash(Hash_Table[Location].Key)==Hash(Id))
+  		    {
+  	     I=Location;
+  	     while(Hash_Table[I].Link!=-1)  I=Hash_Table[I].Link;
+  	     Hash_Table[Pos].Key=Id;
+       Hash_Table[Pos].Offset=Addr; ;
+  	     Hash_Table[I].Link=Pos;
+  	    }//if
+  	   else//Present Key Hash != New Key Hash
+  	    {
+  	     I=Location+1;
+  	     while((I%MAX)!=Location)
+  	     { //search existing key hash same with the new key hash
+		if(I==MAX)  I=0;
+		if(Hash(Hash_Table[I].Key)== Hash(Id))
+		 { Flag=1;  break;}
+		I++;
+  	     }//while
+  	     if(Flag!=1) { Hash_Table[Pos].Key=Id;Hash_Table[Pos].Offset=Addr;}
+  	     else
+		 {
+		   while(Hash_Table[I].Link!=-1)  I=Hash_Table[I].Link;
+		   Hash_Table[Pos].Key=Id;
+		   Hash_Table[Pos].Offset=Addr;
+		   Hash_Table[I].Link=Pos;
+		  }
+	
+  	    }//else
+  	  }//else hash table not full
+ 	}	
+Print();
+}	
+int Hashing::Search(int Key)
+    {
+	int Location=Hash(Key),I,Flag;
+	if(Hash_Table[Location].Key==Key)
+	  return Hash_Table[Location].Offset;
+	else if(Hash(Hash_Table[Location].Key)==Hash(Key))
+		{
+		   I=Location;
+		     while(Hash_Table[I].Link!=-1)
+		     {
+			I=Hash_Table[I].Link;
+			if(Hash_Table[I].Key==Key)
+			   return Hash_Table[I].Offset;
+		      }
+		}
+	      else
+		{
+		  I=Location+1;
+		  while((I%MAX)!=Location)
+		   { //search existing key hash same with the new key hash
+			I=I%MAX;
+			if(Hash(Hash_Table[I].Key)== Hash(Key))
+			   {
+			     while(Hash_Table[I].Link!=-1)
+			      {
+				 I=Hash_Table[I].Link;
+				 if(Hash_Table[I].Key==Key)
+				    return Hash_Table[I].Offset;
+			      }
+			   }
+			I++;
+
+		   }//while
+		}
+    return -1;
+    }
+class DAF
+ {
+   char File_Name[15];
+   Hashing H;
+   public:
+   DAF(){};
+   void Create();
+   void Display();
+   void Add();
+   void Modify(int);
+ //  int Search(int);
+
+ };
+void DAF::Create()
+{
+	ofstream  File;
+	Employee E; int Id,Offset;
+	cout<<"\nEnter File Name:";
+	cin>>File_Name;
+	File.open(File_Name);
+	E.Accept();
+	
+	if(File)
+	{
+	  	Id=E.return_Id();
+	  	File.seekp(0,ios::end);
+	  	Offset=File.tellp();
+	  	H.Chaing_WO_Replacement(Id,Offset);
+	  	File.write((char*)(&E),sizeof(E));
+		File.close();
+	}
+	
+	else cout<<"\nFile creation Error";
+}
+
+void DAF::Display()
+	{
+		ifstream  File;
+		Employee E;
+		File.open(File_Name);
+		if(File)
+		{ cout<<"\n Employee Database\nName\tId \tSalary";
+		  File.read((char*)(&E),sizeof(E));
+		  while(!File.eof())
+			    {
+				      E.Display();
+				      File.read((char*)(&E),sizeof(E));
+			    }
+		  File.close();
+		}else cout<<"\nFile opening Error";
+
+	}
+
+void DAF::Add()
+	{
+		ofstream  File;
+		Employee E; int Id,Offset;
+		File.open(File_Name,ios::app);
+		E.Accept();
+		if(File)
+		{
+		  Id=E.return_Id();
+		  File.seekp(0,ios::end);
+		  Offset=File.tellp();
+		  H.Chaing_WO_Replacement(Id,Offset);
+		  File.write((char*)(&E),sizeof(E));
+		  File.close();}
+		else cout<<"\nFile creation Error";
+	}
+
+void DAF::Modify(int Key)
+{
+	long int Addr=H.Search(Key);
+
+	if(Addr>-1)
+	{ 
+		fstream File; Employee E;
+		File.open(File_Name,ios::in | ios::out);
+		File.seekg(Addr,ios::beg);
+		File.read((char*)&E,sizeof(E));
+		cout<<"\nExisting Details";
+		E.Display();
+		cout<<"\nEnter New Details(Don't Change Employee ID):";
+		E.Accept();
+		File.seekp(Addr,ios::beg);
+		File.write((char*)&E,sizeof(E));
+		File.close();
+	}	
+
+	else cout<<"\nEmployee does not present";
+}
+
+//main Function
+int main()
+{
+//write menu driven program
+DAF d;
+int ch,p;
+
+	while(1)
+	{
+		cout<<"\nMenu\n";
+		cout<<"\n1)Create Database\n2)Add Into Database\n3)Display Database\n4)Modify database\n5)Display hash table\nChoice:";
+		cin>>ch;
+		switch(ch)
+		{
+		case 1:	d.Create();  break;
+	
+		case 2:   d.Add();     break;
+	
+		case 3:	d.Display(); break;
+	
+		case 4:	cout<<"Enter Id Of Employee to be found:";
+				cin>>p;
+				d.Modify(p); break;
+	
+		case 5:	d.Display(); return 0;
+		
+		default:	cout<<"Wrong Input"; break;
+	
+		}//switch
+	
+	}//while
+
+}
+
+/*[it@localhost ~]$ g++ ass12.cpp
+[it@localhost ~]$ ./a.out
+
+Menu
+
+1)Create Database
+2)Add Into Database
+3)Display Database
+4)Modify database
+5)Display hash table
+Choice:1
+
+Enter File Name:emp.txt
+
+Name	: abcd
+Id		: 1
+Salary	: 1234
+
+Hvalue	Key	Offset	Link
+
+0	-1	-1	-1
+1	-1	-1	-1
+2	-1	-1	-1
+3	-1	-1	-1
+4	-1	-1	-1
+5	-1	-1	-1
+6	-1	-1	-1
+7	-1	-1	-1
+8	-1	-1	-1
+9	-1	-1	-1
+Hvalue	Key	Offset	Link
+
+0	-1	-1	-1
+1	1	0	-1
+2	-1	-1	-1
+3	-1	-1	-1
+4	-1	-1	-1
+5	-1	-1	-1
+6	-1	-1	-1
+7	-1	-1	-1
+8	-1	-1	-1
+9	-1	-1	-1
+Menu
+
+1)Create Database
+2)Add Into Database
+3)Display Database
+4)Modify database
+5)Display hash table
+Choice:2
+
+Name	: def 
+Id		: 2
+Salary	: 46656
+
+Hvalue	Key	Offset	Link
+
+0	-1	-1	-1
+1	1	0	-1
+2	-1	-1	-1
+3	-1	-1	-1
+4	-1	-1	-1
+5	-1	-1	-1
+6	-1	-1	-1
+7	-1	-1	-1
+8	-1	-1	-1
+9	-1	-1	-1
+Hvalue	Key	Offset	Link
+
+0	-1	-1	-1
+1	1	0	-1
+2	2	28	-1
+3	-1	-1	-1
+4	-1	-1	-1
+5	-1	-1	-1
+6	-1	-1	-1
+7	-1	-1	-1
+8	-1	-1	-1
+9	-1	-1	-1
+Menu
+
+1)Create Database
+2)Add Into Database
+3)Display Database
+4)Modify database
+5)Display hash table
+Choice:2
+
+Name	: ahsd
+Id		: 3
+Salary	: 456
+
+Hvalue	Key	Offset	Link
+
+0	-1	-1	-1
+1	1	0	-1
+2	2	28	-1
+3	-1	-1	-1
+4	-1	-1	-1
+5	-1	-1	-1
+6	-1	-1	-1
+7	-1	-1	-1
+8	-1	-1	-1
+9	-1	-1	-1
+Hvalue	Key	Offset	Link
+
+0	-1	-1	-1
+1	1	0	-1
+2	2	28	-1
+3	3	56	-1
+4	-1	-1	-1
+5	-1	-1	-1
+6	-1	-1	-1
+7	-1	-1	-1
+8	-1	-1	-1
+9	-1	-1	-1
+Menu
+
+1)Create Database
+2)Add Into Database
+3)Display Database
+4)Modify database
+5)Display hash table
+Choice:2
+
+Name	: jskad
+Id		: 3
+Salary	: 4759
+
+Hvalue	Key	Offset	Link
+
+0	-1	-1	-1
+1	1	0	-1
+2	2	28	-1
+3	3	56	-1
+4	-1	-1	-1
+5	-1	-1	-1
+6	-1	-1	-1
+7	-1	-1	-1
+8	-1	-1	-1
+9	-1	-1	-1
+Hvalue	Key	Offset	Link
+
+0	-1	-1	-1
+1	1	0	-1
+2	2	28	-1
+3	3	56	4
+4	3	84	-1
+5	-1	-1	-1
+6	-1	-1	-1
+7	-1	-1	-1
+8	-1	-1	-1
+9	-1	-1	-1
+Menu
+
+1)Create Database
+2)Add Into Database
+3)Display Database
+4)Modify database
+5)Display hash table
+Choice:4
+Enter Id Of Employee to be found:4
+
+Employee does not present
+Menu
+
+1)Create Database
+2)Add Into Database
+3)Display Database
+4)Modify database
+5)Display hash table
+Choice:4
+Enter Id Of Employee to be found:2
+
+Existing Details
+	def	2	46656
+Enter New Details(Don't Change Employee ID):
+Name	: ashdj
+Id		: 44
+Salary	: 4784  
+
+Menu
+
+1)Create Database
+2)Add Into Database
+3)Display Database
+4)Modify database
+5)Display hash table
+Choice:5
+
+ Employee Database
+Name	Id 	Salary
+	abcd	1	1234
+	ashdj	44	4784
+	ahsd	3	456
+	jskad	3	4759[it@localhost ~]$ 
+*/

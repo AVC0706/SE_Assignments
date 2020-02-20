@@ -1,0 +1,418 @@
+#include<iostream>
+#include<string.h>
+using namespace std;
+
+class facebook
+{
+	struct user
+	{
+		char name[20],dob[20];
+		int visit,no_comments;
+		user *next;
+		
+		user()
+		{
+			next=NULL;
+			visit=-1;
+			no_comments=0;
+		}	
+	}list[20];//structure
+	int pos;
+	
+    public :
+    	facebook()
+    	{
+    		pos=-1;
+    	}
+	int create();
+	void display(int);
+	int position(char[]);
+	void dobmonth();
+	void maxfriend();
+	void comments();
+	void resetflag(int);
+};//class
+
+int facebook :: position(char s[])
+{
+	for(int i=0;i<10;i++)
+		if(strcmp(list[i].name,s)==0)
+			return i;
+	return -1;
+}//position
+
+int facebook :: create()
+{
+	user *Nnode, *Nnode1, *temp;
+	
+	int i=0,pos, no_users=0;
+	char frnd[15], ans, Ans;
+	
+	do
+	{
+		cout<<"\nEnter Username : ";
+		cin>>list[i].name;
+		
+		cout<<"Enter Date of Birth(mm/dd/yyyy) : ";
+		cin>>list[i].dob;
+		
+		cout<<"Enter No. of Comments: ";
+		cin>>list[i].no_comments;
+		
+		i++;
+		no_users++;
+		
+		cout<<"\nAdd more users (Y/N) ???";
+		cin>>ans;
+	}while(ans=='y' || ans=='Y');
+	
+	for(i=0;i<no_users;i++)
+	{
+		cout<<"\nEnter friend list of user "<<list[i].name;
+		
+		do
+		{
+			cout<<"\nEnter friend name : ";
+			cin>>frnd;
+			
+			pos=position(frnd);
+			
+			if(pos!=-1)
+			{
+				Nnode=new user;
+				Nnode->visit=pos;
+				
+				for(temp=&list[i]; temp->visit!=pos && temp->next!=NULL; temp=temp->next);
+				if(temp->visit!=pos)
+				
+					temp->next=Nnode;
+				
+				Nnode1=new user;
+				Nnode1->visit=i;
+				
+				for(temp=&list[pos]; temp->visit!=i && temp->next!=NULL; temp=temp->next);
+				
+				if(temp->visit!=i)
+					temp->next=Nnode1;
+					
+			}//if
+			else
+				cout<<"\nUser does not exist";
+				
+			cout<<"\nAdd more friend of the user (Y/N) ???";
+			cin>>Ans;
+		
+		}while(Ans=='y' || Ans=='Y');
+	}//for	
+	return no_users;
+}//create
+
+void facebook :: display(int n)
+{	
+	user *temp;
+	cout<<"\n=====  LIST OF USERS  =====";
+	cout<<"\nNAME\tDate Of Birth\tComments";
+	
+	for(int i=0;i<n;i++)
+	{
+		temp=&list[i];
+		cout<<"\n"<<list[i].name;
+		cout<<"\t"<<list[i].dob;
+		cout<<"\t"<<list[i].no_comments;		
+	}//for
+}//display
+
+void facebook :: dobmonth()
+{
+	user *temp;
+	int top=-1,i,stk[20];
+	char month[2],dob_month[3];
+	
+	cout<<"\n\n===== Users of same birth month =====";
+	cout<<"\nEnter month : (01:Jan | 02:Feb | .... | 12:Dec) ";
+	cin>>month;
+	list[0].visit=1;
+	
+	stk[++top]=0;
+	
+	cout<<"\nUsers of birth month "<<month<<" are : \n";	
+	while(top>-1)
+	{
+	
+		i=stk[top--];
+		
+		strncpy(dob_month,list[i].dob,2);
+		dob_month[2]='\0';
+		
+		if(strcmp(dob_month,month)==0)
+			cout<<list[i].name<<"\n";
+		temp=list[i].next;
+		
+		while(temp!=NULL)
+		{
+			
+			i=temp->visit;
+			if(list[i].visit!=1)
+			{
+				stk[++top]=temp->visit;
+				list[i].visit=1;
+			}//if
+			temp=temp->next;
+		}//while
+	}//while	
+
+}//dobmonth
+
+void facebook :: maxfriend()
+{
+	int i,j,count,maximum=0;
+	int stk[20],top=-1,pos;
+	user *temp;
+
+	list[0].visit=1;
+	stk[++top]=0;
+
+	while(top>-1)
+	{
+		i=stk[top--];
+		temp=list[i].next;
+
+		count=0;
+		while(temp!=NULL)
+		{
+			count++;
+			j=temp->visit;
+			
+			if(list[j].visit!=1)
+			{
+				stk[++top]=temp->visit;
+				list[j].visit=1;
+			}//if	
+			temp=temp->next;
+		}//while
+		if(count>maximum)
+		{
+			maximum=count;
+			pos=i;
+		}//if
+	}//while
+	cout<<"\nMax friends is of : "<<list[pos].name<<" : "<<maximum;
+}//maxfriend
+
+void facebook :: comments()
+{
+	user *temp;
+	int Q[20],front=0,rear=0,max,min,maxuser,minuser;
+
+	list[0].visit=1;
+	Q[0]=0;
+	
+	max=min=list[0].no_comments;
+	maxuser=0;
+	minuser=0;
+
+	while(front<=rear)
+	{	
+		int i=Q[front++];
+		
+		temp=list[i].next;
+
+		while(temp!=NULL)
+		{
+			cout<<"Y";
+			i=temp->visit;
+			
+			if(list[i].visit!=1)
+			{
+				if(max<list[i].no_comments)
+				{
+					maxuser=i;
+					max=list[maxuser].no_comments;
+				}
+				else if(min>list[i].no_comments)
+				{
+					minuser=i;
+					min=list[minuser].no_comments;
+				}
+				Q[++rear]=i;
+				list[i].visit=1;
+			}//if	
+			
+			temp=temp->next;		
+		}//while
+		
+	}//while
+	cout<<"\nMax comments is of user : "<<list[maxuser].name<<" : "<<max;
+	cout<<"\nMin comments is of user : "<<list[minuser].name<<" : "<<min;
+}//comments
+
+void facebook :: resetflag(int n)
+{
+	int i;
+
+	for(i=0;i<n;i++)
+		list[i].visit=0;
+}//resetflag
+
+int main()
+{
+	facebook fb;
+	int op,num;
+	char ANS;
+
+	num=fb.create();
+	fb.display(num);
+	
+	do
+	{
+	
+		cout<<"\n----------------------------------------------------------------------";
+		cout<<"\n*****   MENU  *****";
+		cout<<"\n1. Users having same birth month";
+		cout<<"\n2. User having maximum friends";
+		cout<<"\n3. User having maximum and minimum no. of comments ";
+		
+		cin>>op;
+		
+		switch(op)
+		{
+			case 1 :
+				fb.resetflag(num);
+				fb.dobmonth();
+				break;
+				
+			case 2 :
+				fb.resetflag(num);
+				fb.maxfriend();
+				break;
+				
+			case 3 :
+				fb.resetflag(num);
+				fb.comments();
+				break;
+				
+				
+			default: cout<<"\nInvalid Input !!!";
+		}//switch
+		
+		cout<<"\nDo more (Y/N) ???";
+		cin>>ANS;
+	 
+	}while(ANS=='Y'||ANS=='y');	
+
+}//main
+
+/*=============================================================================
+				OUTPUT
+
+[it@localhost ~]$ g++ dsfass6.cpp
+[it@localhost ~]$ ./a.out
+
+Enter Username : A
+Enter Date of Birth(mm/dd/yyyy) : 02/16/2010
+Enter No. of Comments: 20 
+
+Add more users (Y/N) ???y
+
+Enter Username : B
+Enter Date of Birth(mm/dd/yyyy) : 02/27/2008
+Enter No. of Comments: 10
+
+Add more users (Y/N) ???y
+
+Enter Username : C
+Enter Date of Birth(mm/dd/yyyy) : 04/08/2000
+Enter No. of Comments: 05
+
+Add more users (Y/N) ???y
+
+Enter Username : D
+Enter Date of Birth(mm/dd/yyyy) : 08/08/2008
+Enter No. of Comments: 15
+
+Add more users (Y/N) ???n
+
+Enter friend list of user A
+Enter friend name : B
+
+Add more friend of the user (Y/N) ???y
+
+Enter friend name : C
+
+Add more friend of the user (Y/N) ???y
+
+Enter friend name : D 
+
+Add more friend of the user (Y/N) ???y
+
+Enter friend name : E
+
+User does not exist
+Add more friend of the user (Y/N) ???n
+
+Enter friend list of user B
+Enter friend name : A
+
+Add more friend of the user (Y/N) ???y
+
+Enter friend name : C
+
+Add more friend of the user (Y/N) ???n
+
+Enter friend list of user C
+Enter friend name : B
+
+Add more friend of the user (Y/N) ???n
+
+Enter friend list of user D
+Enter friend name : A
+
+Add more friend of the user (Y/N) ???y
+
+Enter friend name : C
+
+Add more friend of the user (Y/N) ???n
+
+=====  LIST OF USERS  =====
+NAME	Date Of Birth	Comments
+A	02/16/2010	20
+B	02/27/2008	10
+C	04/08/2000	5
+D	08/08/2008	15
+----------------------------------------------------------------------
+*****   MENU  *****
+1. Users having same birth month
+2. User having maximum friends
+3. User having maximum and minimum no. of comments 1
+
+
+===== Users of same birth month =====
+Enter month (01:Jan | 02:Feb | .... | 12:Dec) : 02
+
+Users of birth month 02 are : 
+A
+B
+
+Do more (Y/N) ???y
+
+----------------------------------------------------------------------
+*****   MENU  *****
+1. Users having same birth month
+2. User having maximum friends
+3. User having maximum and minimum no. of comments 2
+
+Max friends is of : A : 3
+Do more (Y/N) ???y
+
+----------------------------------------------------------------------
+*****   MENU  *****
+1. Users having same birth month
+2. User having maximum friends
+3. User having maximum and minimum no. of comments 3
+
+Max comments is of user : A : 20
+Min comments is of user : C : 5
+Do more (Y/N) ???n
+[iT@localhost ~]$ 
+
+===============================================================================*/
