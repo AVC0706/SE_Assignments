@@ -1,0 +1,25 @@
+ORG 0000H
+ljmp start1
+
+START1:
+	MOV R0, #00H
+	MOV R3, #07H	
+	MOV DPTR, #010H
+
+BACK : 
+	MOVX A,@R0	
+	MOVX @DPTR, A	
+	INC R0	
+	INC DPTR	
+	DJNZ R3, BACK	
+
+
+NEXT1:
+	SJMP NEXT1
+
+END
+
+
+
+
+

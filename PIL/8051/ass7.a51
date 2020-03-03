@@ -1,0 +1,26 @@
+ORG 0000H
+ljmp start
+
+START:
+	MOV R0,#40H
+	MOV R1,#20H
+	MOV R3,10H
+	CLR A
+
+SUM:
+	MOV A,@R1
+	MOV @R0,A
+	;MOV @R1,#0H
+	INC R0
+	INC R1
+	DJNZ R3,SUM
+
+NEXT:
+	SJMP NEXT
+
+END
+
+					 
+
+
+
